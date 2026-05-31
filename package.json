@@ -1,0 +1,15 @@
+{
+  "name": "photo-lookup-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small website where an admin uploads named photos and visitors search by noun.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

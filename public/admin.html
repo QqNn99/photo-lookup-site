@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>管理员上传照片</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="回到查询首页">
+        <span class="brand-mark"></span>
+        <span>照片名词查询</span>
+      </a>
+      <nav>
+        <a href="/">查询</a>
+        <a class="active" href="/admin.html">管理员</a>
+      </nav>
+    </header>
+
+    <main class="admin-shell page-enter">
+      <section class="admin-panel">
+        <p class="eyebrow">Admin</p>
+        <h1>上传照片</h1>
+        <form id="uploadForm" class="upload-form">
+          <label>
+            管理员密码
+            <input id="password" name="password" type="password" placeholder="默认 admin123" required />
+          </label>
+          <label>
+            对应名词
+            <textarea id="terms" name="terms" rows="3" placeholder="多个名词用逗号分隔，例如：苹果, 水果, 红苹果" required></textarea>
+          </label>
+          <label>
+            照片
+            <input id="photo" name="photo" type="file" accept="image/*" required />
+          </label>
+          <button type="submit">上传照片</button>
+          <p id="adminStatus" class="status">上传后，用户就可以在首页搜索这些名词。</p>
+        </form>
+      </section>
+
+      <section class="admin-list-panel">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Library</p>
+            <h2>已上传照片</h2>
+          </div>
+          <button id="refresh" type="button" class="secondary">刷新</button>
+        </div>
+        <div id="photoList" class="admin-list"></div>
+      </section>
+    </main>
+
+    <script src="/admin.js"></script>
+  </body>
+</html>
