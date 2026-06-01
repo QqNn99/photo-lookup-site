@@ -30,12 +30,12 @@ form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const query = queryInput.value.trim();
   if (!query) {
-    statusEl.textContent = "请输入一个名词。";
+    statusEl.textContent = "请输入一个关键词。";
     resultsEl.innerHTML = "";
     return;
   }
 
-  statusEl.textContent = "查询中...";
+  statusEl.textContent = "搜索中...";
   const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
   const data = await response.json();
   renderResults(data.results || []);

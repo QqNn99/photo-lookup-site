@@ -3,33 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>照片名词查询</title>
+    <title>小川大王</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
-    <header class="topbar">
-      <a class="brand" href="/" aria-label="回到查询首页">
-        <span class="brand-mark"></span>
-        <span>照片名词查询</span>
-      </a>
-      <nav>
-        <a class="active" href="/">查询</a>
-        <a href="/admin.html">管理员</a>
-      </nav>
-    </header>
+  <body class="client-home">
+    <a class="admin-link" href="/admin.html">管理员</a>
 
-    <main class="search-shell page-enter">
-      <section class="lookup-panel">
-        <p class="eyebrow">Photo Finder</p>
-        <h1>输入一个名词，找到对应照片。</h1>
-        <form id="searchForm" class="search-form">
-          <input id="query" name="q" type="search" placeholder="例如：苹果、学校、汽车" autocomplete="off" />
-          <button type="submit">查询</button>
+    <main class="client-stage page-enter">
+      <h1 class="hero-title">小川大王</h1>
+
+      <section class="client-search" aria-label="关键词搜索">
+        <form id="searchForm" class="client-search-form">
+          <input id="query" name="q" type="search" placeholder="输入关键词" autocomplete="off" />
+          <button type="submit">搜索</button>
         </form>
-        <p id="status" class="status">等待输入。</p>
+        <p id="status" class="client-status">输入关键词后开始搜索。</p>
       </section>
 
-      <section id="results" class="results" aria-live="polite"></section>
+      <section id="results" class="client-results" aria-live="polite"></section>
     </main>
 
     <script src="/main.js"></script>
