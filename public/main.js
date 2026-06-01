@@ -17,7 +17,6 @@ function createBubbleScene() {
   const bubbles = [];
   const fragment = document.createDocumentFragment();
   const edgePadding = 180;
-  const collisionChecksPerFrame = window.innerWidth < 760 ? 3 : 5;
 
   for (let index = 0; index < bubbleCount; index += 1) {
     const element = document.createElement("span");
@@ -42,49 +41,10 @@ function createBubbleScene() {
 
   bubbleField.appendChild(fragment);
 
-  function collideBubbles(startIndex) {
-    for (let offset = 0; offset < collisionChecksPerFrame; offset += 1) {
-      const i = (startIndex + offset) % bubbles.length;
-      const bubble = bubbles[i];
-      const centerX = bubble.x + bubble.size / 2;
-      const centerY = bubble.y + bubble.size / 2;
-
-      for (let j = i + 1; j < bubbles.length; j += 1) {
-        const other = bubbles[j];
-        const otherX = other.x + other.size / 2;
-        const otherY = other.y + other.size / 2;
-        const dx = otherX - centerX;
-        const dy = otherY - centerY;
-        const distance = Math.hypot(dx, dy) || 1;
-        const minDistance = (bubble.size + other.size) * 0.42;
-
-        if (distance < minDistance) {
-          const overlap = minDistance - distance;
-          const nx = dx / distance;
-          const ny = dy / distance;
-          const push = overlap * 0.018;
-
-          bubble.vx -= nx * push;
-          bubble.vy -= ny * push;
-          other.vx += nx * push;
-          other.vy += ny * push;
-
-          bubble.x -= nx * overlap * 0.08;
-          bubble.y -= ny * overlap * 0.08;
-          other.x += nx * overlap * 0.08;
-          other.y += ny * overlap * 0.08;
-        }
-      }
-    }
-  }
-
   function moveBubble(bubble, time) {
     bubble.drift += 0.006 + bubble.size / 90000;
     bubble.x += bubble.vx + Math.sin(time / 1200 + bubble.drift) * 0.28;
     bubble.y += bubble.vy + Math.cos(time / 1600 + bubble.drift) * 0.08;
-
-    bubble.vx *= 0.992;
-    bubble.vy = bubble.vy * 0.992 - 0.001;
 
     if (pointer.active) {
       const centerX = bubble.x + bubble.size / 2;
@@ -92,15 +52,13 @@ function createBubbleScene() {
       const dx = centerX - pointer.x;
       const dy = centerY - pointer.y;
       const distance = Math.hypot(dx, dy);
-      const forceRadius = 118;
+      const forceRadius = 190;
 
       if (distance < forceRadius) {
-        const force = (1 - distance / forceRadius) * 3.2;
+        const force = (1 - distance / forceRadius) * 9.5;
         const angle = Math.atan2(dy, dx);
         bubble.x += Math.cos(angle) * force;
         bubble.y += Math.sin(angle) * force;
-        bubble.vx += Math.cos(angle) * force * 0.018;
-        bubble.vy += Math.sin(angle) * force * 0.018;
       }
     }
 
@@ -119,7 +77,6 @@ function createBubbleScene() {
   }
 
   function animate(time) {
-    collideBubbles(Math.floor(time / 120) % bubbles.length);
     for (const bubble of bubbles) moveBubble(bubble, time);
     requestAnimationFrame(animate);
   }
