@@ -13,22 +13,23 @@ const pointer = {
 function createBubbleScene() {
   if (!bubbleField || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  const bubbleCount = window.innerWidth < 760 ? 22 : 42;
+  const bubbleCount = window.innerWidth < 760 ? 30 : 58;
   const bubbles = [];
   const fragment = document.createDocumentFragment();
+  const edgePadding = 180;
 
   for (let index = 0; index < bubbleCount; index += 1) {
     const element = document.createElement("span");
-    const size = 18 + Math.random() * 92;
+    const size = 28 + Math.random() * 122;
     const bubble = {
       element,
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.22,
-      vy: -0.12 - Math.random() * 0.28,
+      x: -edgePadding + Math.random() * (window.innerWidth + edgePadding * 2),
+      y: -edgePadding + Math.random() * (window.innerHeight + edgePadding * 2),
+      vx: (Math.random() - 0.5) * 0.34,
+      vy: -0.1 - Math.random() * 0.24,
       drift: Math.random() * Math.PI * 2,
       size,
-      opacity: 0.14 + Math.random() * 0.24
+      opacity: 0.26 + Math.random() * 0.26
     };
 
     element.style.width = `${size}px`;
@@ -51,22 +52,26 @@ function createBubbleScene() {
       const dx = centerX - pointer.x;
       const dy = centerY - pointer.y;
       const distance = Math.hypot(dx, dy);
-      const forceRadius = 160;
+      const forceRadius = 190;
 
       if (distance < forceRadius) {
-        const force = (1 - distance / forceRadius) * 7;
+        const force = (1 - distance / forceRadius) * 9.5;
         const angle = Math.atan2(dy, dx);
         bubble.x += Math.cos(angle) * force;
         bubble.y += Math.sin(angle) * force;
       }
     }
 
-    if (bubble.y < -bubble.size - 20) {
-      bubble.y = window.innerHeight + bubble.size;
-      bubble.x = Math.random() * window.innerWidth;
+    if (bubble.y < -edgePadding - bubble.size) {
+      bubble.y = window.innerHeight + edgePadding;
+      bubble.x = -edgePadding + Math.random() * (window.innerWidth + edgePadding * 2);
     }
-    if (bubble.x < -bubble.size - 20) bubble.x = window.innerWidth + bubble.size;
-    if (bubble.x > window.innerWidth + bubble.size + 20) bubble.x = -bubble.size;
+    if (bubble.y > window.innerHeight + edgePadding + bubble.size) {
+      bubble.y = -edgePadding - bubble.size;
+      bubble.x = -edgePadding + Math.random() * (window.innerWidth + edgePadding * 2);
+    }
+    if (bubble.x < -edgePadding - bubble.size) bubble.x = window.innerWidth + edgePadding;
+    if (bubble.x > window.innerWidth + edgePadding + bubble.size) bubble.x = -edgePadding - bubble.size;
 
     bubble.element.style.transform = `translate3d(${bubble.x}px, ${bubble.y}px, 0)`;
   }
