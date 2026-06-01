@@ -37,7 +37,8 @@ async function main() {
     );
     const formData = new FormData();
     formData.append("terms", "测试苹果, 苹果");
-    formData.append("photo", new Blob([png], { type: "image/png" }), "apple.png");
+    formData.append("photos", new Blob([png], { type: "image/png" }), "apple-1.png");
+    formData.append("photos", new Blob([png], { type: "image/png" }), "apple-2.png");
 
     const uploaded = await request(baseUrl, "/api/photos", {
       method: "POST",
@@ -49,18 +50,22 @@ async function main() {
     const uploadData = await uploaded.json();
     const search = await request(baseUrl, "/api/search?q=%E8%8B%B9%E6%9E%9C");
     const searchData = await search.json();
-    if (!searchData.results.some((item) => item.id === uploadData.photo.id)) {
-      throw new Error("search did not return uploaded photo");
+    const uploadedIds = uploadData.photos.map((photo) => photo.id);
+    const matchedCount = searchData.results.filter((item) => uploadedIds.includes(item.id)).length;
+    if (matchedCount !== 2) {
+      throw new Error(`search returned ${matchedCount} uploaded photos instead of 2`);
     }
 
-    const removed = await request(baseUrl, `/api/photos/${uploadData.photo.id}`, {
-      method: "DELETE",
-      headers: { "x-admin-password": "admin123" }
-    });
-    if (removed.status !== 200) throw new Error(`delete status ${removed.status}`);
+    for (const photo of uploadData.photos) {
+      const removed = await request(baseUrl, `/api/photos/${photo.id}`, {
+        method: "DELETE",
+        headers: { "x-admin-password": "admin123" }
+      });
+      if (removed.status !== 200) throw new Error(`delete status ${removed.status}`);
 
-    const filePath = path.join(uploadsDir, path.basename(uploadData.photo.url));
-    if (fs.existsSync(filePath)) throw new Error("uploaded file was not deleted");
+      const filePath = path.join(uploadsDir, path.basename(photo.url));
+      if (fs.existsSync(filePath)) throw new Error("uploaded file was not deleted");
+    }
 
     console.log("Smoke test passed");
   } finally {

@@ -87,7 +87,7 @@ function serveFile(res, baseDir, requestPath) {
   fs.createReadStream(filePath).pipe(res);
 }
 
-function readBody(req, maxBytes = 10 * 1024 * 1024) {
+function readBody(req, maxBytes = 80 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
@@ -95,7 +95,7 @@ function readBody(req, maxBytes = 10 * 1024 * 1024) {
     req.on("data", (chunk) => {
       size += chunk.length;
       if (size > maxBytes) {
-        reject(new Error("文件太大，最大支持 8MB 左右的图片"));
+        reject(new Error("上传内容太大，请一次少选几张照片"));
         req.destroy();
         return;
       }
@@ -113,7 +113,7 @@ function parseMultipart(buffer, contentType) {
 
   const boundary = Buffer.from(`--${match[1] || match[2]}`);
   const fields = {};
-  let file = null;
+  const files = [];
   let offset = 0;
 
   while (offset < buffer.length) {
@@ -139,7 +139,7 @@ function parseMultipart(buffer, contentType) {
     const type = headers.match(/content-type:\s*([^\r\n]+)/i)?.[1]?.trim() || "";
 
     if (name && filename) {
-      file = { field: name, filename, type, data };
+      files.push({ field: name, filename, type, data });
     } else if (name) {
       fields[name] = data.toString("utf8");
     }
@@ -147,7 +147,7 @@ function parseMultipart(buffer, contentType) {
     offset = nextBoundary;
   }
 
-  return { fields, file };
+  return { fields, files };
 }
 
 function imageExtension(filename, type) {
@@ -181,31 +181,34 @@ async function handleApi(req, res, url) {
     if (!isAdmin(req)) return sendError(res, 401, "管理员密码不正确");
 
     const body = await readBody(req);
-    const { fields, file } = parseMultipart(body, req.headers["content-type"] || "");
+    const { fields, files } = parseMultipart(body, req.headers["content-type"] || "");
     const terms = String(fields.terms || "")
       .split(/[,\n，、]/)
       .map((term) => term.trim())
       .filter(Boolean);
 
     if (terms.length === 0) return sendError(res, 400, "请至少输入一个名词");
-    if (!file || !file.data.length) return sendError(res, 400, "请选择一张照片");
-    if (!file.type.startsWith("image/")) return sendError(res, 400, "只能上传图片文件");
+    if (files.length === 0) return sendError(res, 400, "请至少选择一张照片");
+    if (files.some((file) => !file.type.startsWith("image/"))) {
+      return sendError(res, 400, "只能上传图片文件");
+    }
 
-    const filename = `${Date.now()}-${crypto.randomUUID()}${imageExtension(file.filename, file.type)}`;
-    fs.writeFileSync(path.join(uploadsDir, filename), file.data);
+    const existingPhotos = loadPhotos();
+    const savedPhotos = files.map((file) => {
+      const filename = `${Date.now()}-${crypto.randomUUID()}${imageExtension(file.filename, file.type)}`;
+      fs.writeFileSync(path.join(uploadsDir, filename), file.data);
 
-    const photos = loadPhotos();
-    const photo = {
-      id: crypto.randomUUID(),
-      terms,
-      url: `/uploads/${filename}`,
-      originalName: file.filename,
-      createdAt: new Date().toISOString()
-    };
+      return {
+        id: crypto.randomUUID(),
+        terms,
+        url: `/uploads/${filename}`,
+        originalName: file.filename,
+        createdAt: new Date().toISOString()
+      };
+    });
 
-    photos.unshift(photo);
-    savePhotos(photos);
-    return sendJson(res, 201, { photo });
+    savePhotos([...savedPhotos, ...existingPhotos]);
+    return sendJson(res, 201, { photos: savedPhotos, photo: savedPhotos[0] });
   }
 
   const deleteMatch = url.pathname.match(/^\/api\/photos\/([a-f0-9-]+)$/i);

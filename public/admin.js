@@ -121,27 +121,44 @@ async function loadPhotos() {
   }
 }
 
+async function compressFiles(files) {
+  const compressedFiles = [];
+  let originalBytes = 0;
+  let compressedBytes = 0;
+
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    statusEl.textContent = `正在压缩第 ${index + 1} / ${files.length} 张照片...`;
+    const compressed = await compressImage(file);
+    compressedFiles.push(compressed);
+    originalBytes += file.size;
+    compressedBytes += compressed.size;
+  }
+
+  return { compressedFiles, originalBytes, compressedBytes };
+}
+
 uploadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const originalFile = photoInput.files[0];
-  if (!originalFile) {
-    statusEl.textContent = "请选择一张照片。";
+  const originalFiles = Array.from(photoInput.files);
+  if (originalFiles.length === 0) {
+    statusEl.textContent = "请至少选择一张照片。";
     return;
   }
 
-  statusEl.textContent = "正在压缩照片...";
-
   try {
-    const compressedFile = await compressImage(originalFile);
+    const { compressedFiles, originalBytes, compressedBytes } = await compressFiles(originalFiles);
     const formData = new FormData();
     formData.append("password", password());
     formData.append("terms", termsInput.value);
-    formData.append("photo", compressedFile);
+    for (const file of compressedFiles) {
+      formData.append("photos", file);
+    }
 
-    statusEl.textContent = `正在上传，${formatBytes(originalFile.size)} -> ${formatBytes(compressedFile.size)}。`;
+    statusEl.textContent = `正在上传 ${compressedFiles.length} 张照片，${formatBytes(originalBytes)} -> ${formatBytes(compressedBytes)}。`;
 
-    await api("/api/photos", {
+    const data = await api("/api/photos", {
       method: "POST",
       body: formData,
       headers: {}
@@ -149,7 +166,7 @@ uploadForm.addEventListener("submit", async (event) => {
 
     termsInput.value = "";
     photoInput.value = "";
-    statusEl.textContent = "上传成功。";
+    statusEl.textContent = `上传成功，共 ${data.photos?.length || compressedFiles.length} 张。`;
     loadPhotos();
   } catch (error) {
     statusEl.textContent = error.message;
