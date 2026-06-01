@@ -3,6 +3,11 @@ const passwordInput = document.querySelector("#password");
 const statusEl = document.querySelector("#adminStatus");
 const photoList = document.querySelector("#photoList");
 const refreshButton = document.querySelector("#refresh");
+const termsInput = document.querySelector("#terms");
+const photoInput = document.querySelector("#photo");
+
+const maxImageSide = 1600;
+const jpegQuality = 0.82;
 
 function password() {
   return passwordInput.value;
@@ -19,6 +24,54 @@ async function api(path, options = {}) {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "请求失败");
   return data;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`;
+}
+
+function readImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("图片读取失败"));
+    image.src = URL.createObjectURL(file);
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("图片压缩失败"));
+    }, type, quality);
+  });
+}
+
+async function compressImage(file) {
+  if (!file.type.startsWith("image/")) return file;
+  if (file.type === "image/gif") return file;
+
+  const image = await readImage(file);
+  const scale = Math.min(1, maxImageSide / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.round(image.naturalWidth * scale);
+  const height = Math.round(image.naturalHeight * scale);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0, width, height);
+  URL.revokeObjectURL(image.src);
+
+  const blob = await canvasToBlob(canvas, "image/jpeg", jpegQuality);
+  if (blob.size >= file.size && file.size <= 2 * 1024 * 1024) return file;
+
+  return new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+    type: "image/jpeg",
+    lastModified: Date.now()
+  });
 }
 
 function renderPhotos(photos) {
@@ -70,17 +123,32 @@ async function loadPhotos() {
 
 uploadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const formData = new FormData(uploadForm);
-  statusEl.textContent = "上传中...";
+
+  const originalFile = photoInput.files[0];
+  if (!originalFile) {
+    statusEl.textContent = "请选择一张照片。";
+    return;
+  }
+
+  statusEl.textContent = "正在压缩照片...";
 
   try {
+    const compressedFile = await compressImage(originalFile);
+    const formData = new FormData();
+    formData.append("password", password());
+    formData.append("terms", termsInput.value);
+    formData.append("photo", compressedFile);
+
+    statusEl.textContent = `正在上传，${formatBytes(originalFile.size)} -> ${formatBytes(compressedFile.size)}。`;
+
     await api("/api/photos", {
       method: "POST",
       body: formData,
       headers: {}
     });
-    document.querySelector("#terms").value = "";
-    document.querySelector("#photo").value = "";
+
+    termsInput.value = "";
+    photoInput.value = "";
     statusEl.textContent = "上传成功。";
     loadPhotos();
   } catch (error) {
