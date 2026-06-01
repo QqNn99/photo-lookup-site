@@ -77,6 +77,76 @@ body::before {
   animation: shimmerDrift 16s linear infinite;
 }
 
+.bubble-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bubble-field span {
+  position: absolute;
+  display: block;
+  width: var(--size);
+  height: var(--size);
+  left: var(--left);
+  bottom: -140px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.58), transparent 22%),
+    rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 0 22px rgba(255, 255, 255, 0.22),
+    0 18px 44px rgba(89, 68, 151, 0.12);
+  opacity: 0.52;
+  animation: bubbleRise var(--duration) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.bubble-field span:nth-child(1) {
+  --size: 92px;
+  --left: 8%;
+  --duration: 15s;
+  --delay: -2s;
+}
+
+.bubble-field span:nth-child(2) {
+  --size: 48px;
+  --left: 22%;
+  --duration: 12s;
+  --delay: -7s;
+}
+
+.bubble-field span:nth-child(3) {
+  --size: 124px;
+  --left: 70%;
+  --duration: 18s;
+  --delay: -5s;
+}
+
+.bubble-field span:nth-child(4) {
+  --size: 66px;
+  --left: 84%;
+  --duration: 14s;
+  --delay: -10s;
+}
+
+.bubble-field span:nth-child(5) {
+  --size: 38px;
+  --left: 54%;
+  --duration: 11s;
+  --delay: -4s;
+}
+
+.bubble-field span:nth-child(6) {
+  --size: 78px;
+  --left: 38%;
+  --duration: 16s;
+  --delay: -12s;
+}
+
 .admin-link {
   position: fixed;
   top: 22px;
@@ -111,24 +181,51 @@ body::before {
 
 .hero-title {
   position: fixed;
-  inset: 50% auto auto 50%;
+  inset: 33% auto auto 50%;
   z-index: 0;
-  width: min(1000px, 96vw);
+  width: min(1120px, 96vw);
   margin: 0;
   color: transparent;
-  font-size: clamp(82px, 19vw, 245px);
+  font-size: clamp(76px, 15vw, 190px);
   font-weight: 900;
-  line-height: 0.92;
+  line-height: 1;
   text-align: center;
+  white-space: nowrap;
   background:
-    radial-gradient(circle at 22% 28%, #a8f1df, transparent 42%),
+    linear-gradient(135deg, rgba(219, 255, 247, 0.68), rgba(183, 154, 248, 0.64)),
     linear-gradient(135deg, #8fe8dc, #b79af8);
   background-clip: text;
   -webkit-background-clip: text;
-  filter: blur(0.2px) drop-shadow(0 22px 42px rgba(88, 67, 141, 0.14));
-  opacity: 0.58;
-  transform: translate(-50%, -67%);
+  filter:
+    drop-shadow(0 34px 48px rgba(67, 48, 139, 0.22))
+    drop-shadow(0 -10px 20px rgba(255, 255, 255, 0.28));
+  opacity: 0.76;
+  transform: translate(-50%, -50%);
   user-select: none;
+}
+
+.hero-title::before,
+.hero-title::after {
+  position: absolute;
+  inset: 0;
+  content: "小川大王";
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  pointer-events: none;
+}
+
+.hero-title::before {
+  z-index: -1;
+  background-image: linear-gradient(135deg, rgba(115, 232, 217, 0.22), rgba(129, 91, 229, 0.28));
+  transform: translate(14px, 18px);
+  filter: blur(8px);
+}
+
+.hero-title::after {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.06));
+  transform: translate(-7px, -9px);
+  filter: blur(2px);
 }
 
 .client-search {
@@ -563,6 +660,23 @@ button:active {
   }
 }
 
+@keyframes bubbleRise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.86);
+  }
+  14% {
+    opacity: 0.54;
+  }
+  50% {
+    transform: translate3d(22px, -52vh, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-18px, -112vh, 0) scale(1.12);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -619,8 +733,9 @@ button:active {
   }
 
   .hero-title {
-    font-size: clamp(76px, 24vw, 132px);
-    transform: translate(-50%, -76%);
+    top: 29%;
+    font-size: clamp(56px, 18vw, 94px);
+    transform: translate(-50%, -50%);
   }
 
   .client-search {
